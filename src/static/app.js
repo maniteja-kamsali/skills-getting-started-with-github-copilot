@@ -70,8 +70,32 @@ document.addEventListener("DOMContentLoaded", () => {
             emailSpan.className = "participant-email";
             emailSpan.textContent = email;
 
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "delete-participant-btn";
+            deleteBtn.innerHTML = "&times;";
+            deleteBtn.title = `Remove ${email}`;
+            deleteBtn.addEventListener("click", async (e) => {
+              e.preventDefault();
+              try {
+                const response = await fetch(
+                  `/activities/${encodeURIComponent(name)}/unregister?email=${encodeURIComponent(email)}`,
+                  { method: "POST" }
+                );
+                if (response.ok) {
+                  fetchActivities();
+                } else {
+                  const result = await response.json();
+                  alert(result.detail || "Failed to unregister participant");
+                }
+              } catch (error) {
+                alert("Error unregistering participant");
+                console.error("Error:", error);
+              }
+            });
+
             li.appendChild(avatar);
             li.appendChild(emailSpan);
+            li.appendChild(deleteBtn);
             ul.appendChild(li);
           });
           participantsDiv.appendChild(ul);
@@ -119,6 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
